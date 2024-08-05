@@ -1,0 +1,35 @@
+networks:
+  gitlab-network:
+    driver: bridge
+    name: gitlab-network
+
+services:
+  nginx:
+    image: nginx:1.27-bookworm-perl
+    container_name: nginx
+    restart: always
+    networks:
+      - gitlab-network
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl/:/etc/ssl/
+    ports:
+      - 80:80
+      - 443:443
+      - 2244:22
+
+  gitlab:
+    image: gitlab/gitlab-ce:17.2.1-ce.0
+    container_name: gitlab
+    restart: always
+    networks:
+      - gitlab-network
+    volumes:
+      - ./gitlab.rb:/etc/gitlab/gitlab.rb
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+    environment:
+      - GITLAB_OMNIBUS_CONFIG="external_url 'http://gitlab.example.com'"
+      - EXTERNAL_URL=http://gitlab.example.com
+    mem_limit: 6g
